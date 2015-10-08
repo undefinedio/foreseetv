@@ -1,0 +1,5 @@
+<div class="container">
+    <div ng-if="!loggedIn" ng-include="'views/admin/partials/login.html'"></div>
+
+    <div ng-if="loggedIn" ng-include="'views/admin/partials/loggedIn.html'"></div>
+</div>

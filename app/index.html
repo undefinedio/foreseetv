@@ -1,0 +1,276 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    <!-- build:css(.) styles/vendor.css -->
+    <!-- bower:css -->
+    <link rel='stylesheet' href='bower_components/angular-hotkeys/build/hotkeys.min.css' />
+    <!-- endbower -->
+    <!-- endbuild -->
+    <!-- build:css(.tmp) styles/main.css -->
+    <link rel="stylesheet" href="styles/main.css">
+    <!-- endbuild -->
+    <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'
+          type='text/css'>
+</head>
+<body ng-app="kethtubeApp">
+<!--[if lte IE 8]>
+<p class="browsehappy">You are using an <strong>outdated</strong> browser. Please
+    <a href="http://browsehappy.com/">upgrade your browser</a>
+    to improve your experience.
+</p>
+<![endif]-->
+
+<!-- PRELOADER -->
+<div class="preloader-scoped" pre-loader="">
+    <div id="wrapper">
+        <canvas id="stage"></canvas>
+    </div>
+</div>
+<style>
+    #wrapper {
+        width: 100%;
+        padding: 0;
+        margin: 0 auto;
+        max-width: 100%;
+        /*overflow: hidden;*/
+        text-align: center;
+        height: 100%;
+    }
+
+    canvas {
+        box-sizing: border-box;
+        padding: 0 40px 0 0;
+        margin: 20px auto 0;
+        text-align: center;
+        max-width: 100%;
+    }
+
+    .preloader-scoped.inverse {
+        -webkit-filter: invert(1);
+        filter: invert(1);
+        transition: all .3s ease-in;
+    }
+
+
+    .preloader-scoped {
+        background-color: black;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+    }
+
+    body{
+        min-height: 100vh;
+    }
+</style>
+<script>
+    (function () {
+        "use strict";
+        var textSize = 10;
+
+        var glitcher = {
+            init: function () {
+                setTimeout((function () {
+                    this.canvas = document.getElementById('stage');
+                    this.context = this.canvas.getContext('2d');
+
+                    this.initOptions();
+                    this.resize();
+                    this.tick();
+                }).bind(this), 100);
+            },
+
+            initOptions: function () {
+                this.width = document.documentElement.offsetWidth;
+                this.height = document.documentElement.offsetHeight;
+
+                this.textSize = Math.floor(this.width / 7);
+
+                if (this.textSize > this.height) {
+                    this.textSize = Math.floor(this.height / 1.5);
+                }
+
+                this.font = '900 ' + this.textSize + 'px "Orbitron"';
+                this.context.font = this.font;
+                this.text = "FORESEE.TV";
+                this.textWidth = (this.context.measureText(this.text)).width;
+
+                this.fps = 60;
+
+                this.channel = 0; // 0 = red, 1 = green, 2 = blue
+                this.compOp = 'lighter'; // CompositeOperation = lighter || darker || xor
+                this.phase = 0.0;
+                this.phaseStep = 0.05; //determines how often we will change channel and amplitude
+                this.amplitude = 0.0;
+                this.amplitudeBase = 2.0;
+                this.amplitudeRange = 2.0;
+                this.alphaMin = 0.8;
+
+                this.glitchAmplitude = 20.0;
+                this.glitchThreshold = 0.9;
+                this.scanlineBase = 40;
+                this.scanlineRange = 40;
+                this.scanlineShift = 15;
+            },
+
+            tick: function () {
+                setTimeout((function () {
+                    this.phase += this.phaseStep;
+
+                    if (this.phase > 1) {
+                        this.phase = 0.0;
+                        this.channel = (this.channel === 2) ? 0 : this.channel + 1;
+                        this.amplitude = this.amplitudeBase + (this.amplitudeRange * Math.random());
+                    }
+
+                    this.render();
+                    this.tick();
+
+                }).bind(this), 1000 / this.fps);
+            },
+
+            render: function () {
+                var x0 = this.amplitude * Math.sin((Math.PI * 2) * this.phase) >> 0,
+                    x1, x2, x3;
+
+                if (Math.random() >= this.glitchThreshold) {
+                    x0 *= this.glitchAmplitude;
+                }
+
+                x1 = this.width - this.textWidth >> 1;
+                x2 = x1 + x0;
+                x3 = x1 - x0;
+
+                this.context.clearRect(0, 0, this.width, this.height);
+                this.context.globalAlpha = this.alphaMin + ((1 - this.alphaMin) * Math.random());
+
+                switch (this.channel) {
+                    case 0:
+                        this.renderChannels(x1, x2, x3);
+                        break;
+                    case 1:
+                        this.renderChannels(x2, x3, x1);
+                        break;
+                    case 2:
+                        this.renderChannels(x3, x1, x2);
+                        break;
+                }
+                this.renderScanline();
+                if (Math.floor(Math.random() * 2) > 1) {
+                    this.renderScanline();
+// renders a second scanline 50% of the time
+                }
+            },
+
+            renderChannels: function (x1, x2, x3) {
+                this.context.font = this.font;
+                this.context.fillStyle = "rgb(255,0,0)";
+                this.context.fillText(this.text, x1, this.height / 2);
+
+                this.context.globalCompositeOperation = this.compOp;
+
+                this.context.fillStyle = "rgb(0,255,0)";
+                this.context.fillText(this.text, x2, this.height / 2);
+                this.context.fillStyle = "rgb(0,0,255)";
+                this.context.fillText(this.text, x3, this.height / 2);
+            },
+
+            renderScanline: function () {
+                var y = this.height * Math.random() >> 0,
+                    o = this.context.getImageData(0, y, this.width, 1),
+                    d = o.data,
+                    i = d.length,
+                    s = this.scanlineBase + this.scanlineRange * Math.random() >> 0,
+                    x = -this.scanlineShift + this.scanlineShift * 2 * Math.random() >> 0;
+
+                while (i-- > 0) {
+                    d[i] += s;
+                }
+
+                this.context.putImageData(o, x, y);
+            },
+
+            resize: function () {
+                this.width = document.documentElement.offsetWidth;
+//this.height = window.innerHeight;
+                this.height = document.documentElement.offsetHeight;
+                if (this.canvas) {
+                    this.canvas.height = this.height;
+//document.documentElement.offsetHeight;
+                    this.canvas.width = this.width;
+//document.documentElement.offsetWidth;
+                    this.textSize = Math.floor(this.canvas.width / 7);
+// RE-sets text size based on window size
+                    if (this.textSize > this.height) {
+                        this.textSize = Math.floor(this.canvas.height / 1.5);
+                    }
+// tries to make text fit if window is
+// very wide, but not very tall
+                    this.font = '900 ' + this.textSize + 'px "Montserrat"';
+                    this.context.font = this.font;
+                }
+            }
+        };
+
+        document.onload = glitcher.init();
+        window.onresize = glitcher.resize();
+// return;
+// executes anonymous function onload
+    })();
+    <!-- PRELOADER -->
+</script>
+
+<div ng-view=""></div>
+<!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
+<script>
+    !function (A, n, g, u, l, a, r) {
+        A.GoogleAnalyticsObject = l, A[l] = A[l] || function () {
+                (A[l].q = A[l].q || []).push(arguments)
+            }, A[l].l = +new Date, a = n.createElement(g),
+            r = n.getElementsByTagName(g)[0], a.src = u, r.parentNode.insertBefore(a, r)
+    }(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+
+    ga('create', 'UA-XXXXX-X');
+    ga('send', 'pageview');
+</script>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<!-- build:js(.) scripts/vendor.js -->
+<!-- bower:js -->
+<script src="bower_components/jquery/dist/jquery.js"></script>
+<script src="bower_components/angular/angular.js"></script>
+<script src="bower_components/angular-animate/angular-animate.js"></script>
+<script src="bower_components/angular-cookies/angular-cookies.js"></script>
+<script src="bower_components/angular-fullscreen/src/angular-fullscreen.js"></script>
+<script src="bower_components/angular-hotkeys/build/hotkeys.min.js"></script>
+<script src="bower_components/angular-resource/angular-resource.js"></script>
+<script src="bower_components/angular-route/angular-route.js"></script>
+<script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+<script src="bower_components/angular-touch/angular-touch.js"></script>
+<script src="bower_components/angular-youtube-mb/src/angular-youtube-embed.js"></script>
+<script src="bower_components/firebase/firebase.js"></script>
+<script src="bower_components/angularfire/dist/angularfire.js"></script>
+<script src="bower_components/bootstrap-sass/assets/javascripts/bootstrap.js"></script>
+<script src="bower_components/lodash/lodash.js"></script>
+<!-- endbower -->
+<!-- endbuild -->
+
+<!-- build:js({.tmp,app}) scripts/scripts.js -->
+<script src="scripts/app.js"></script>
+<script src="scripts/controllers/main.js"></script>
+<script src="scripts/controllers/admin.js"></script>
+<script src="scripts/directives/specialeffects.js"></script>
+<script src="scripts/directives/preloader.js"></script>
+<script src="scripts/services/preloaderservice.js"></script>
+<!-- endbuild -->
+</body>
+</html>

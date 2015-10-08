@@ -1,0 +1,18 @@
+<form class="form-signin" ng-submit="login(user)">
+    <div class="alert alert-danger" role="alert" ng-if="error">
+        <span class="sr-only">Error:</span>
+        <span>{{error.message}}</span>
+    </div>
+
+    <h2 class="form-signin-heading">Please sign in</h2>
+
+    <label for="email" class="sr-only">Email address</label>
+    <input type="text" name="email" id="email" class="form-control" placeholder="email"
+           ng-model="user.email" required autofocus/>
+
+    <label for="password" class="sr-only">Password</label>
+    <input type="password" id="password" class="form-control" ng-model="user.password"
+           placeholder="Password" required>
+
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+</form>

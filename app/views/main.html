@@ -1,0 +1,32 @@
+<div class="main-page">
+    <div class="mouseMove" ng-mousemove="mouseMove()" ng-class="{'showCursor': showMenu}">
+        <div class="show-menu" ng-class="{'show': showMenu}">
+            <!--<h2>controls</h2>-->
+            <!--<ul>-->
+                <!--<li>space - pause/play</li>-->
+                <!--<li>left arrow - prev video</li>-->
+                <!--<li>right arrow - next video</li>-->
+                <!--<li>f - fullscreen</li>-->
+            <!--</ul>-->
+
+            <!--<h2>Filters</h2>-->
+            <!--<ul>-->
+                <!--<li>s - sepia</li>-->
+                <!--<li>g - greyscale</li>-->
+                <!--<li>b - blur</li>-->
+                <!--<li>i - invert</li>-->
+            <!--</ul>-->
+            <a href="" ng-click="openMenu()">
+                MENU
+            </a>
+        </div>
+    </div>
+
+    <div class="effect" special-effects="" sepia="effects.sepia">
+        <youtube-video video-id="video"
+                       player-width="'100%'" player="player" player-height="'100%'"
+                       player-vars="playerVars">
+        </youtube-video>
+    </div>
+</div>
+

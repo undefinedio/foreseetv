@@ -1,0 +1,50 @@
+<div class="row">
+    <h1>Admin</h1>
+
+    <div class="col-md-6">
+        <form ng-submit="new(newVideo.url)">
+            <div class="input-group">
+                <input type="text" class="form-control" name="new" ng-model="newVideo.url"
+                       placeholder="youtube url"/>
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-default">add</button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <hr/>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <td>video code</td>
+            <td>created on</td>
+            <td>link</td>
+            <td>options</td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="video in videos | orderBy:'-createdOn'">
+            <td>
+                {{video.id}}
+            </td>
+            <td>
+                {{video.createdOn | date:'medium'}}
+            </td>
+            <td>
+                <a target="_blank" ng-href="http://youtube.com/watch?v={{ video.id }}">
+                    youtube
+                </a>
+            </td>
+            <td>
+                <button ng-click="delete(video)">X</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+</div>
+
